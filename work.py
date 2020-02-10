@@ -363,7 +363,12 @@ class Dfa:
     def write(self):
         for i in range(len(self.Q)):
             # Printing index, the delta fuunction for that transition and if it's final state
-            print(i, self.d[i], 'F' if i in self.F else '')
+            print(i, '->', self.d[i], 'F' if i in self.F else '')
+
+    def getdict(self):
+        return self.d
+    def getF(self):
+        return(self.F)
 
 
 # Preprocessing Functions
@@ -397,30 +402,72 @@ def gen_alphabet(regex):
 DEBUG = False
 
 # Main
-regex = 'ab?'
+regex1 = 'caaab'
+regex2 = 'caa?'
 
 # Check
-if not check_for_validation(regex):
+if not check_for_validation(regex1):
+    exit(0)
+if not check_for_validation(regex2):
     exit(0)
 
 # Preprocess regex and generate the alphabet
-p_regex = preprocess(regex)
-alphabet = gen_alphabet(p_regex)
+p_regex1 = preprocess(regex1)
+p_regex2 = preprocess(regex2)
+
+alphabet = gen_alphabet(p_regex1)
+#alphabet = gen_alphabet(p_regex2)
 # add optional letters that don't appear in the expression
 extra = ''
-alphabet = alphabet.union(set(extra))
+#alphabet1 = alphabet1.union(set(extra))
 
 # Construct
-tree = RegexTree(p_regex)
+tree1 = RegexTree(p_regex1)
 if DEBUG:
-    tree.write()
-dfa = tree.toDfa()
+    tree1.write()
+dfa1 = tree1.toDfa()
+
+tree2 = RegexTree(p_regex2)
+if DEBUG:
+    tree2.write()
+dfa2 = tree2.toDfa()
 
 # Test
-message = 'ab'
-print('This is the regex : ' + regex)
-print('This is the alphabet : ' + ''.join(sorted(alphabet)))
-print('This is the automata : \n')
-dfa.write()
-print('\nTesting for : "' + message + '" : ')
-dfa.run(message)
+message = 'caab'
+print('This is the first regex : ' + regex1)
+print('This is the second regex : ' + regex2)
+print('This is the first alphabet : ' + ''.join(sorted(alphabet)))
+#print('This is the second alphabet : ' + ''.join(sorted(alphabet)))
+print('This is the first automata : \n')
+dfa1.write()
+fGLOBAL1=dfa1.getF()
+diction1=dfa1.getdict()
+print('This is the second automata : \n')
+dfa2.write()
+fGLOBAL2=dfa2.getF()
+diction2=dfa2.getdict()
+
+print('This is short version of two regexes: \n')
+if len(diction1)>len(diction2):
+    for i in range(len(diction1)):
+        if i<len(diction2):
+            if diction1[i] == diction2[i]:
+                print(i,'->',diction1[i],'F' if (i in fGLOBAL1 or i in fGLOBAL2) else '')
+            else:
+                print(i,'->',diction1[i],'|',diction2[i],'F' if (i in fGLOBAL1 or i in fGLOBAL2) else '')
+        else:
+            print(i,'->',diction1[i], 'F' if (i in fGLOBAL1 or i in fGLOBAL2) else '')
+else:
+    for i in range(len(diction2)):
+        if i<len(diction1):
+            if diction2[i] == diction1[i]:
+                print(i,'->',diction2[i])
+            else:
+                print(i,'->',diction2[i],'|',diction1[i])
+
+print('\nTesting first for : "' + message + '" : ')
+dfa1.run(message)
+
+print('\nTesting second for : "' + message + '" : ')
+dfa2.run(message)
+
