@@ -461,6 +461,9 @@ def first_method(reg1,reg2):
             else:
                 listOfReg.remove(listOfReg[i])
                 listOfI.remove(listOfI[i])
+    if len(listOfReg)==1:
+        listOfReg.clear()
+        listOfI.clear()
 
     # swap terminals from listofReg to second reg
     j = 0
@@ -493,17 +496,25 @@ def first_method(reg1,reg2):
 def second_method(reg):
     listOfLastElements = []
     for i in range(len(reg)):
-        if i == 0:
-            pass
+        if reg[i][0] == 'S':
+            continue
         if reg[i][4] != 'A' and reg[i][4] != '|e':
             listOfLastElements.append(i)
-    if reg[listOfLastElements[0]]==reg[listOfLastElements[1]]:
+    if reg[listOfLastElements[0]][3]==reg[listOfLastElements[1]][3]:
+        reg[listOfLastElements[0] - 1][4] = 'C'
+        reg[listOfLastElements[1] - 1][4] = 'C'
+        reg[listOfLastElements[0] - 1][5] = '0'
+        reg[listOfLastElements[1] - 1][5] = '0'
         reg[listOfLastElements[0]][0] = 'C'
-        reg[listOfLastElements[0]][1] = 'C'
+        reg[listOfLastElements[0]][1] = '0'
         reg[listOfLastElements[1]][0] = 'C'
-        reg[listOfLastElements[1]][0] = 'C'
-    print(listOfLastElements)
-    print(reg)
+        reg[listOfLastElements[1]][1] = '0'
+    uniquelist = []
+    for i in range(len(reg)):
+        if reg[i] not in uniquelist:
+            uniquelist.append(reg[i])
+    return uniquelist
+
 
 # Settings
 DEBUG = False
@@ -562,10 +573,12 @@ for i in range(len(myList2)):
     print (myList2[i])
 fGLOBAL2 = dfa2.F
 diction2 = dfa2.d
-print ('=========')
+print ('11111')
 first = first_method(myList,myList2)
 print(first)
-print ('==========')
+print ('222222')
+second = second_method(first)
+print(second)
 #second_method(first)
 # Result messages
 #print('\nTesting first for : "' + message + '" : ')
