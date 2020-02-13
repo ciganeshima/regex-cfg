@@ -1,9 +1,10 @@
-from copy import deepcopy
+from copy import deepcopy,copy
 
 
 # Regex validation
 def check_for_validation(regex):
     return validated_parenthesis(regex) and validated_signs(regex)
+
 
 # check for parenthesis
 def validated_parenthesis(regex):
@@ -20,6 +21,7 @@ def validated_parenthesis(regex):
         return True
     print('ERROR unclosed parenthesis')
     return False
+
 
 # check for operators
 def validated_signs(regex):
@@ -161,11 +163,11 @@ class RegexNode:
             self.item = '*'
             self.children.append(RegexNode(self.trim_parenthesis(regex[:kleene])))
         elif plus != -1:
-            #Found a plus
+            # Found a plus
             self.item = '+'
             self.children.append(RegexNode(self.trim_parenthesis(regex[:plus])))
         elif question != -1:
-            #Found a question
+            # Found a question
             self.item = '?'
             self.children.append(RegexNode(self.trim_parenthesis(regex[:question])))
 
@@ -209,7 +211,6 @@ class RegexNode:
             self.firstpos = sorted(list(set(self.children[0].firstpos + self.children[1].firstpos)))
             # Lastpos
             self.lastpos = sorted(list(set(self.children[0].lastpos + self.children[1].lastpos)))
-            # Nullable
             self.nullable = self.children[0].nullable or self.children[1].nullable
 
         elif self.item == '*':
@@ -339,36 +340,66 @@ class Dfa:
         # Checking if the input is in the current alphabet
         if len(set(text) - self.V) != 0:
             # Not all the characters are in the language
-            print('ERROR characters', (set(text) - self.V), 'are not in the automata\'s alphabet')
+            print('ERROR characters', (set(text) - self.V), 'are not in the automate\'s alphabet')
             exit(0)
 
-        # Running the automata
+        # Running the automate
         q = self.q0
         for i in text:
             # Check if transition exists
             if q >= len(self.d):
                 print('Message NOT accepted, state has no transitions')
-                exit(0)
+                continue
             if i not in self.d[q].keys():
                 print('Message NOT accepted, state has no transitions with the character')
-                exit(0)
+                continue
             # Execute transition
             q = self.d[q][i]
-
         if q in self.F:
             print('Message accepted!')
         else:
             print('Message NOT accepted, stopped in an unfinal state')
 
-    def write(self):
-        for i in range(len(self.Q)):
-            # Printing index, the delta fuunction for that transition and if it's final state
-            print(i, '->', self.d[i], 'F' if i in self.F else '')
-
-    def getdict(self):
-        return self.d
-    def getF(self):
-        return(self.F)
+    def write(self, identify):
+        k = 0
+        grammarString = ''
+        listOfGrammarStrings = []
+        for i in range(identify, len(self.Q)+identify):
+            # Printing index, the delta function for that transition and if it's final state
+            if i == identify:
+                for name in self.d[k].keys():
+                    if i == self.d[k][name]:
+                        print('S -> ', name, 'A', self.d[k][name] + identify, '|e' if k in self.F else '',
+                              sep='')
+                        grammarString = ['S','-> ', name, 'A', self.d[k][name] + identify, '|e' if k in self.F else '']
+                        listOfGrammarStrings.append(grammarString)
+                    elif k + 1 < len(self.d):
+                        if bool(self.d[k+1]):
+                            print('S -> ', name, 'A', self.d[k][name]+identify, '|e' if k in self.F else '', sep='')
+                            grammarString = ['S','-> ', name, 'A', self.d[k][name]+identify, '|e' if k in self.F else '']
+                            listOfGrammarStrings.append(grammarString)
+                        else:
+                            print('S -> ', name, '|e' if k in self.F else '', sep='')
+                            grammarString = ['S','-> ', name, '|e' if k in self.F else '']
+                            listOfGrammarStrings.append(grammarString)
+                k += 1
+            else:
+                for name in self.d[k].keys():
+                    if i == self.d[k][name]:
+                        print('A', i, ' -> ', name, 'A', self.d[k][name] + identify, '|e' if k in self.F else '',
+                              sep='')
+                        grammarString = ['A', i, ' -> ', name, 'A', self.d[k][name] + identify, '|e' if k in self.F else '']
+                        listOfGrammarStrings.append(grammarString)
+                    elif (k + 1 < len(self.d)) and bool(self.d[k+1]):
+                        print('A', i, ' -> ', name, 'A', self.d[k][name] + identify, '|e' if k in self.F else '', sep='')
+                        grammarString = ['A', i, ' -> ', name, 'A', self.d[k][name] + identify, '|e' if k in self.F else '']
+                        listOfGrammarStrings.append(grammarString)
+                    else:
+                        print('A', i, ' -> ', name, '|e' if k in self.F else '', sep='')
+                        grammarString = ['A', i, ' -> ', name, '|e' if k in self.F else '']
+                        listOfGrammarStrings.append(grammarString)
+                k += 1
+        return listOfGrammarStrings
 
 
 # Preprocessing Functions
@@ -381,11 +412,13 @@ def preprocess(regex):
         regex = regex.replace('()', '')
     return regex
 
+
 def clean_plus(regex):
     for i in range(0, len(regex) - 1):
         while i < len(regex) - 1 and regex[i + 1] == regex[i] and regex[i] == '+':
             regex = regex[:i] + regex[i + 1:]
     return regex
+
 
 def clean_kleene(regex):
     for i in range(0, len(regex) - 1):
@@ -395,31 +428,108 @@ def clean_kleene(regex):
 
 
 def gen_alphabet(regex):
-    return (set(regex) - set('()|+*?'))
+    return set(regex) - set('()|+*?')
 
+
+def first_method(reg1,reg2):
+    listOfReg = []
+    listOfI = []
+    finalList = []
+    if len(reg1)>len(reg2):
+        lenReg = len(reg2)
+        lenBigger = len(reg1)
+    else:
+        lenReg = len(reg1)
+        lenBigger = len(reg2)
+    # find equal transactions
+    for i in range(lenBigger):
+        if i < lenReg:
+            if reg1[i][0] == 'S':
+                if reg1[i][2] == reg2[i][2]:
+                    listOfReg.append(copy(reg1[i]))
+                    listOfI.append(i)
+            else:
+                if reg1[i][3] == reg2[i][3]:
+                    listOfReg.append(copy(reg1[i]))
+                    listOfI.append(i)
+    # delete not sequenced transactions
+    for i in range(len(listOfReg)):
+            if i == 0:
+                continue
+            elif listOfReg[i][0] == 'S' or listOfReg[i][1] == listOfReg[i - 1][4] or listOfReg[i][1] == listOfReg[i - 1][5]:
+                continue
+            else:
+                listOfReg.remove(listOfReg[i])
+                listOfI.remove(listOfI[i])
+
+    # swap terminals from listofReg to second reg
+    j = 0
+    for i in listOfI:
+        reg2[i]=listOfReg[j]
+        if i==1:
+            reg2[i][1] = reg2[i-1][4]
+        elif i==0:
+            pass
+        elif i==len(reg2)-1:
+            pass
+        elif j==len(listOfI)-1:
+            reg2[i][5] = reg2[i+1][1]
+        elif j==0:
+            reg2[i][1] = reg2[i-1][5]
+        j += 1
+    # add two regexes in one list
+    for i in range(len(reg1)):
+        finalList.append(reg1[i])
+    for i in range(len(reg2)):
+        finalList.append(reg2[i])
+    # make all elements unique
+    uniquelist = []
+    for i in range(len(finalList)):
+        if finalList[i] not in uniquelist:
+            uniquelist.append(finalList[i])
+    return uniquelist
+
+
+def second_method(reg):
+    listOfLastElements = []
+    for i in range(len(reg)):
+        if i == 0:
+            pass
+        if reg[i][4] != 'A' and reg[i][4] != '|e':
+            listOfLastElements.append(i)
+    if reg[listOfLastElements[0]]==reg[listOfLastElements[1]]:
+        reg[listOfLastElements[0]][0] = 'C'
+        reg[listOfLastElements[0]][1] = 'C'
+        reg[listOfLastElements[1]][0] = 'C'
+        reg[listOfLastElements[1]][0] = 'C'
+    print(listOfLastElements)
+    print(reg)
 
 # Settings
 DEBUG = False
 
+#cbacab
+#aaacab
 # Main
-regex1 = 'caaab'
-regex2 = 'caa?'
-
+print('Type 1 regex')
+regex1 = input()
+print('Type 2 regex')
+regex2 = input()
+# |?
 # Check
 if not check_for_validation(regex1):
     exit(0)
 if not check_for_validation(regex2):
     exit(0)
 
-# Preprocess regex and generate the alphabet
+# Preprocessing regex and generate the alphabet
 p_regex1 = preprocess(regex1)
 p_regex2 = preprocess(regex2)
+p_alphabet = p_regex1+p_regex2
+alphabet = gen_alphabet(p_alphabet)
 
-alphabet = gen_alphabet(p_regex1)
-#alphabet = gen_alphabet(p_regex2)
 # add optional letters that don't appear in the expression
 extra = ''
-#alphabet1 = alphabet1.union(set(extra))
 
 # Construct
 tree1 = RegexTree(p_regex1)
@@ -433,41 +543,34 @@ if DEBUG:
 dfa2 = tree2.toDfa()
 
 # Test
-message = 'caab'
+message = 'cb'
 print('This is the first regex : ' + regex1)
 print('This is the second regex : ' + regex2)
-print('This is the first alphabet : ' + ''.join(sorted(alphabet)))
-#print('This is the second alphabet : ' + ''.join(sorted(alphabet)))
-print('This is the first automata : \n')
-dfa1.write()
-fGLOBAL1=dfa1.getF()
-diction1=dfa1.getdict()
-print('This is the second automata : \n')
-dfa2.write()
-fGLOBAL2=dfa2.getF()
-diction2=dfa2.getdict()
+print('This is the alphabet : ' + ''.join(sorted(alphabet)))
+# Operating with first regex
+print('This is the first automate : \n')
+myList = dfa1.write(0)
+for i in range(len(myList)):
+    print (myList[i])
+fGLOBAL1 = dfa1.F
+diction1 = dfa1.d
+# Operating with second regex
+print('This is the second automate : \n')
+lengthOfQ = len(dfa1.Q)
+myList2 = dfa2.write(lengthOfQ)
+for i in range(len(myList2)):
+    print (myList2[i])
+fGLOBAL2 = dfa2.F
+diction2 = dfa2.d
+print ('=========')
+first = first_method(myList,myList2)
+print(first)
+print ('==========')
+#second_method(first)
+# Result messages
+#print('\nTesting first for : "' + message + '" : ')
+#dfa1.run(message)
 
-print('This is short version of two regexes: \n')
-if len(diction1)>len(diction2):
-    for i in range(len(diction1)):
-        if i<len(diction2):
-            if diction1[i] == diction2[i]:
-                print(i,'->',diction1[i],'F' if (i in fGLOBAL1 or i in fGLOBAL2) else '')
-            else:
-                print(i,'->',diction1[i],'|',diction2[i],'F' if (i in fGLOBAL1 or i in fGLOBAL2) else '')
-        else:
-            print(i,'->',diction1[i], 'F' if (i in fGLOBAL1 or i in fGLOBAL2) else '')
-else:
-    for i in range(len(diction2)):
-        if i<len(diction1):
-            if diction2[i] == diction1[i]:
-                print(i,'->',diction2[i])
-            else:
-                print(i,'->',diction2[i],'|',diction1[i])
-
-print('\nTesting first for : "' + message + '" : ')
-dfa1.run(message)
-
-print('\nTesting second for : "' + message + '" : ')
-dfa2.run(message)
+#print('\nTesting second for : "' + message + '" : ')
+#dfa2.run(message)
 
