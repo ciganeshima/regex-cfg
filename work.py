@@ -456,6 +456,9 @@ def first_method(reg1, reg2):
     for i in range(len(listOfReg)):
             if i == 0:
                 continue
+            elif len(listOfReg[i]) == 7:
+                if listOfReg[i][6]:
+                    continue
             elif listOfReg[i][0] == 'S' or listOfReg[i][1] == listOfReg[i - 1][4] or listOfReg[i][1] == listOfReg[i - 1][5]:
                 continue
             else:
@@ -500,7 +503,6 @@ def second_method(reg):
             continue
         if reg[i][4] != 'A' and reg[i][4] != '|e':
             listOfLastElements.append(i)
-    print(listOfLastElements)
     if len(listOfLastElements) > 0 and len(listOfLastElements) % 2 == 0:
         if reg[listOfLastElements[0]][3] == reg[listOfLastElements[1]][3]:
             reg[listOfLastElements[0] - 1][4] = 'C'
@@ -517,17 +519,28 @@ def second_method(reg):
             uniquelist.append(reg[i])
     return uniquelist
 
+def normal_print(reg):
+    for i in range(len(reg)):
+        if reg[i][0] == 'S':
+            if len(reg[i]) == 4 :
+                print(reg[i][0],reg[i][1],reg[i][2],reg[i][3], sep='')
+            else:
+                print(reg[i][0],reg[i][1],reg[i][2],reg[i][3],reg[i][4],reg[i][5], sep='')
+        elif len(reg[i]) == 5:
+            print(reg[i][0],reg[i][1],reg[i][2],reg[i][3],'|e' if len(reg[i]) == 5 and reg[i][4] == '|e' else '',sep ='')
+        else:
+            print(reg[i][0], reg[i][1], reg[i][2], reg[i][3], reg[i][4], reg[i][5], '|e' if len(reg[i]) == 7 and reg[i][6] == '|e' else '',sep ='')
+
 
 # Settings
 DEBUG = False
 
 
 # Main
-print('Type 1 regex')
+print('Введите первое регулярное выражение')
 regex1 = input()
-print('Type 2 regex')
+print('Введите второе регулярное выражение')
 regex2 = input()
-# |?
 # Check
 if not check_for_validation(regex1):
     exit(0)
@@ -556,30 +569,31 @@ dfa2 = tree2.toDfa()
 
 # Test
 message = 'cb'
-print('This is the first regex : ' + regex1)
-print('This is the second regex : ' + regex2)
-print('This is the alphabet : ' + ''.join(sorted(alphabet)))
+print('Это первое регулярное выражение : ' + regex1)
+print('Это второе регулярное выражение: ' + regex2)
+print('Это входной алфавит : ' + ''.join(sorted(alphabet)))
 # Operating with first regex
-print('This is the first automate : \n')
+print('Это разбор первого регулярного выражения в к-с грамматике : \n')
 myList = dfa1.write(0)
-for i in range(len(myList)):
-    print (myList[i])
+#for i in range(len(myList)):
+#    print (myList[i])
 fGLOBAL1 = dfa1.F
 diction1 = dfa1.d
 # Operating with second regex
-print('This is the second automate : \n')
+print('Это разбор второго регулярного выражения в к-с грамматике : \n')
 lengthOfQ = len(dfa1.Q)
 myList2 = dfa2.write(lengthOfQ)
-for i in range(len(myList2)):
-    print (myList2[i])
+#for i in range(len(myList2)):
+#    print (myList2[i])
 fGLOBAL2 = dfa2.F
 diction2 = dfa2.d
-print ('11111')
 first = first_method(myList,myList2)
-print(first)
-print ('222222')
 second = second_method(first)
-print(second)
+print('Результат :')
+#print(second)
+normal_print(second)
+input("Нажмите для выхода ...")
+
 #second_method(first)
 # Result messages
 #print('\nTesting first for : "' + message + '" : ')
