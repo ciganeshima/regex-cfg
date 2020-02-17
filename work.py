@@ -467,18 +467,17 @@ def first_method(reg1, reg2):
     if len(listOfReg) == 1:
         listOfReg.clear()
         listOfI.clear()
-
     # swap terminals from listofReg to second reg
     j = 0
     for i in listOfI:
         reg2[i] = listOfReg[j]
-        if i == 1:
+        if i == 1 and len(reg2) != 3:
             reg2[i][1] = reg2[i-1][4]
         elif i == 0:
             pass
-        elif i == len(reg2)-1:
-            pass
-        elif j == len(listOfI)-1:
+        elif i == len(reg2)-2:
+            reg2[i+1][1] = reg2[i][5]
+        elif j == len(listOfI)-1 and len(reg2)-1 != j:
             reg2[i][5] = reg2[i+1][1]
         elif j == 0:
             reg2[i][1] = reg2[i-1][5]
@@ -513,6 +512,15 @@ def second_method(reg):
             reg[listOfLastElements[0]][1] = '0'
             reg[listOfLastElements[1]][0] = 'C'
             reg[listOfLastElements[1]][1] = '0'
+        else:
+            reg[listOfLastElements[0]-1][3] = reg[listOfLastElements[0]-1][3] + reg[listOfLastElements[0]][3]
+            reg[listOfLastElements[1]-1][3] = reg[listOfLastElements[1]-1][3] + reg[listOfLastElements[1]][3]
+            reg[listOfLastElements[0]].clear()
+            reg[listOfLastElements[1]].clear()
+            reg[listOfLastElements[0] - 1][4] = ''
+            reg[listOfLastElements[0] - 1][5] = ''
+            reg[listOfLastElements[1] - 1][4] = ''
+            reg[listOfLastElements[1] - 1][5] = ''
     uniquelist = []
     for i in range(len(reg)):
         if reg[i] not in uniquelist:
@@ -521,7 +529,9 @@ def second_method(reg):
 
 def normal_print(reg):
     for i in range(len(reg)):
-        if reg[i][0] == 'S':
+        if len(reg[i]) == 0:
+            continue
+        elif reg[i][0] == 'S':
             if len(reg[i]) == 4 :
                 print(reg[i][0],reg[i][1],reg[i][2],reg[i][3], sep='')
             else:
