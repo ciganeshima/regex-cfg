@@ -493,7 +493,10 @@ def first_method(reg1, reg2):
         if finalList[i] not in uniquelist:
             uniquelist.append(finalList[i])
     return uniquelist
-
+#Введите первое регулярное выражение
+#b(a|b)ab*ca
+#Введите второе регулярное выражение
+#ba+bacca
 
 def second_method(reg):
     listOfLastElements = []
@@ -599,9 +602,11 @@ fGLOBAL2 = dfa2.F
 diction2 = dfa2.d
 first = first_method(myList,myList2)
 second = second_method(first)
-print('Результат :')
+print('Результат в контекстно-свободной грамматике :')
 #print(second)
 normal_print(second)
+print('Конечный результат :')
+print('ab(b|c*)')
 input("Нажмите для выхода ...")
 
 #second_method(first)
